@@ -9,6 +9,9 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
+import androidx.glance.ImageProvider
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.updateAll
@@ -55,12 +58,19 @@ class StockWidget : GlanceAppWidget() {
         }
     }
 
+    private fun refreshPrice() {
+        PriceDataRepo.update()
+    }
+
     @Composable
     fun GlanceContent() {
         val price by PriceDataRepo.currentPrice.collectAsState()
 
         Column(
             modifier = GlanceModifier
+                .clickable {
+                    refreshPrice()
+                }
                 .fillMaxSize()
                 .background(GlanceTheme.colors.background)
                 .padding(8.dp)
@@ -78,7 +88,11 @@ class StockWidget : GlanceAppWidget() {
                 style = TextStyle(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = GlanceTheme.colors.error
+                    color = if (PriceDataRepo.change > 0) {
+                        GlanceTheme.colors.primary
+                    } else {
+                        GlanceTheme.colors.error
+                    }
                 )
             )
 
@@ -87,8 +101,26 @@ class StockWidget : GlanceAppWidget() {
                 style = TextStyle(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = GlanceTheme.colors.error
+                    color = if (PriceDataRepo.change > 0) {
+                        GlanceTheme.colors.primary
+                    } else {
+                        GlanceTheme.colors.error
+                    }
                 )
+            )
+
+            Image(
+                provider = ImageProvider(
+                    if (PriceDataRepo.change > 0) {
+                        R.drawable.up_arrow
+                    } else {
+                        R.drawable.down_arrow
+                    }
+                ),
+                contentDescription = "Price direction",
+                modifier = GlanceModifier
+                    .fillMaxSize()
+                    .padding(12.dp)
             )
         }
     }
